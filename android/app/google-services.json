@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "655903468616",
+    "project_id": "tokofotocopy-app",
+    "storage_bucket": "tokofotocopy-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655903468616:android:62c80c75d84fd8bd847c7d",
+        "android_client_info": {
+          "package_name": "com.example.fotocopy_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcvfkdDgQMffwv32GBRvH3SFeqqxPWdQg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

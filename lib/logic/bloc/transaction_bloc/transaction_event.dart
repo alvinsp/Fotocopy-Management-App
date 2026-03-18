@@ -31,3 +31,8 @@ class ChangeDateRequested extends TransactionEvent {
   final DateTime selectedDate;
   ChangeDateRequested(this.selectedDate);
 }
+
+class SearchNameRequested extends TransactionEvent {
+  final String query;
+  SearchNameRequested(this.query);
+}

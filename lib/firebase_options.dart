@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -40,47 +41,47 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAPBYhLNk4LoOfO7y0_SjjKbAuvQJoXqLs',
+  static FirebaseOptions web = FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID']!,
     appId: '1:655903468616:web:a93b7280a3cf54ce847c7d',
     messagingSenderId: '655903468616',
-    projectId: 'tokofotocopy-app',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
     authDomain: 'tokofotocopy-app.firebaseapp.com',
     storageBucket: 'tokofotocopy-app.firebasestorage.app',
     measurementId: 'G-CZ0KNM5PV1',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCcvfkdDgQMffwv32GBRvH3SFeqqxPWdQg',
-    appId: '1:655903468616:android:62c80c75d84fd8bd847c7d',
+  static FirebaseOptions android = FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID']!,
+    appId: dotenv.env['FIREBASE_APP_ID']!,
     messagingSenderId: '655903468616',
-    projectId: 'tokofotocopy-app',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
     storageBucket: 'tokofotocopy-app.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCEbhGTZB27oxzWO12hGRT7L-iZw2NxXTg',
-    appId: '1:655903468616:ios:c9fe39e09e02983c847c7d',
+  static FirebaseOptions ios = FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID']!,
+    appId: dotenv.env['FIREBASE_APP_ID']!,
     messagingSenderId: '655903468616',
-    projectId: 'tokofotocopy-app',
-    storageBucket: 'tokofotocopy-app.firebasestorage.app',
-    iosBundleId: 'com.example.fotocopyApp',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCEbhGTZB27oxzWO12hGRT7L-iZw2NxXTg',
-    appId: '1:655903468616:ios:c9fe39e09e02983c847c7d',
-    messagingSenderId: '655903468616',
-    projectId: 'tokofotocopy-app',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
     storageBucket: 'tokofotocopy-app.firebasestorage.app',
     iosBundleId: 'com.example.fotocopyApp',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAPBYhLNk4LoOfO7y0_SjjKbAuvQJoXqLs',
+  static FirebaseOptions macos = FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID']!,
+    appId: dotenv.env['FIREBASE_APP_ID']!,
+    messagingSenderId: '655903468616',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+    storageBucket: 'tokofotocopy-app.firebasestorage.app',
+    iosBundleId: 'com.example.fotocopyApp',
+  );
+
+  static FirebaseOptions windows = FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID']!,
     appId: '1:655903468616:web:b9285ceb9ebea3e8847c7d',
     messagingSenderId: '655903468616',
-    projectId: 'tokofotocopy-app',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
     authDomain: 'tokofotocopy-app.firebaseapp.com',
     storageBucket: 'tokofotocopy-app.firebasestorage.app',
     measurementId: 'G-MDTD8BRD52',

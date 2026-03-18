@@ -14,6 +14,7 @@ class TransactionError extends TransactionState {
 
 class TransactionLoaded extends TransactionState {
   final List<OrderModel> orders;
-  final DateTime selectedDate; // Tambahkan ini
-  TransactionLoaded(this.orders, this.selectedDate);
+  final DateTime selectedDate;
+  final String searchQuery;
+  TransactionLoaded(this.orders, this.selectedDate, {this.searchQuery = ''});
 }

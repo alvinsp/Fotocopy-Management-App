@@ -9,7 +9,7 @@ Widget orderCard(BuildContext context, OrderModel order) {
 
   return Dismissible(
     key: Key(order.id),
-    direction: DismissDirection.endToStart, // Geser ke kiri saja
+    direction: DismissDirection.endToStart,
     background: Container(
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: 20),

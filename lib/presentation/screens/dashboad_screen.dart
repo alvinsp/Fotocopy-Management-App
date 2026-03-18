@@ -7,6 +7,7 @@ import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart'
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_state.dart';
 import 'package:fotocopy_app/presentation/widgets/omzet_header.dart';
 import 'package:fotocopy_app/presentation/widgets/order_card.dart';
+import 'package:fotocopy_app/presentation/widgets/row_kategori.dart';
 import 'package:fotocopy_app/presentation/widgets/show_add_order_dialog.dart';
 import 'package:fotocopy_app/presentation/widgets/summary_card.dart';
 
@@ -61,11 +62,51 @@ class DashboardScreen extends StatelessWidget {
             final omzet =
                 listSelesai.fold(0, (sum, item) => sum + item.totalHarga);
 
+            int hitungPerKategori(String namaKat) {
+              return listSelesai
+                  .where((o) => o.kategori == namaKat)
+                  .fold(0, (sum, item) => sum + item.totalHarga);
+            }
+
+            int omzetFotocopy = hitungPerKategori('Fotocopy');
+            int omzetPrint = hitungPerKategori('Print');
+            int omzetJilid = hitungPerKategori('Jilid');
+            int omzetATK = hitungPerKategori('ATK');
+
             return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  omzetHeader(omzet, state.selectedDate),
+                  OmzetHeader(total: omzet, date: state.selectedDate),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10)
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Rincian Pendapatan",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14)),
+                          const Divider(height: 20),
+                          rowKategori("Fotocopy", omzetFotocopy, Colors.orange),
+                          rowKategori("Print", omzetPrint, Colors.blue),
+                          rowKategori("Jilid", omzetJilid, Colors.green),
+                          rowKategori("ATK", omzetATK, Colors.purple),
+                        ],
+                      ),
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -92,6 +133,27 @@ class DashboardScreen extends StatelessWidget {
                             summaryCard("Toner", "85%", Icons.format_color_fill,
                                 Colors.purple),
                           ],
+                        ),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: "Cari nama pelanggan...",
+                              prefixIcon: const Icon(Icons.search),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            onChanged: (value) {
+                              context
+                                  .read<TransactionBloc>()
+                                  .add(SearchNameRequested(value));
+                            },
+                          ),
                         ),
                         const SizedBox(height: 24),
                         const Text("Antrean Print Terbaru",

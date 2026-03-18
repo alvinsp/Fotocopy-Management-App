@@ -11,6 +11,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   StreamSubscription? _subscription;
   StreamSubscription? _orderSubscription;
   final DateTime _currentDate = DateTime.now();
+  String _currentSearch = '';
+  List<OrderModel> _allOrders = [];
 
   TransactionBloc(this._repository) : super(TransactionInitial()) {
     on<WatchOrders>((event, emit) {
@@ -61,8 +63,30 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       });
     });
 
+    on<SearchNameRequested>((event, emit) {
+      _currentSearch = event.query;
+
+      final filtered = _allOrders.where((order) {
+        return order.namaPelanggan
+            .toLowerCase()
+            .contains(_currentSearch.toLowerCase());
+      }).toList();
+
+      emit(TransactionLoaded(filtered, _currentDate,
+          searchQuery: _currentSearch));
+    });
+
     on<OrdersUpdated>((event, emit) {
-      emit(TransactionLoaded(event.orders, _currentDate));
+      _allOrders = event.orders;
+
+      final filtered = _allOrders.where((order) {
+        return order.namaPelanggan
+            .toLowerCase()
+            .contains(_currentSearch.toLowerCase());
+      }).toList();
+
+      emit(TransactionLoaded(filtered, _currentDate,
+          searchQuery: _currentSearch));
     });
   }
 

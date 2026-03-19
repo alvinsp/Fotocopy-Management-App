@@ -6,11 +6,11 @@ import 'package:fotocopy_app/data/repositories/inventory_repository.dart';
 import 'package:fotocopy_app/data/repositories/oder_repository.dart';
 import 'package:fotocopy_app/firebase_options.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
-import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
 import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_event.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart';
+import 'package:fotocopy_app/logic/services/storage_sevice.dart'; // <--- Cek typo nama file ini ya
 import 'package:fotocopy_app/presentation/screens/login_screen.dart';
 import 'package:fotocopy_app/presentation/screens/main_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -18,9 +18,12 @@ import 'package:intl/date_symbol_data_local.dart';
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  bool isLoggedIn = await StorageService.checkLoginStatus();
 
   await initializeDateFormatting('id_ID', null);
 
@@ -43,32 +46,24 @@ void main(List<String> args) async {
                 InventoryBloc(InventoryRepository())..add(LoadInventory()),
           ),
         ],
-        child: const MyApp(),
+        child: MyApp(isLoggedIn: isLoggedIn),
       ),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          if (state is Authenticated) {
-            return const MainScreen();
-          }
-          if (state is AuthLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return const LoginScreen();
-        },
-      ),
+      title: 'Fotocopy Bekalan',
+      theme: ThemeData(primarySwatch: Colors.indigo),
+      home: isLoggedIn ? const MainScreen() : const LoginScreen(),
     );
   }
 }

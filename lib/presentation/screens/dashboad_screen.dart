@@ -11,6 +11,7 @@ import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_state.dart';
 import 'package:fotocopy_app/logic/services/pdf_service.dart';
+import 'package:fotocopy_app/logic/services/storage_sevice.dart';
 import 'package:fotocopy_app/presentation/widgets/edit_stock_dialog.dart';
 import 'package:fotocopy_app/presentation/widgets/monthly_chart.dart';
 import 'package:fotocopy_app/presentation/widgets/omzet_header.dart';
@@ -27,11 +28,19 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  String userRole = 'karyawan';
+
   @override
   void initState() {
     super.initState();
-    context.read<TransactionBloc>().add(LoadTransactions());
-    context.read<InventoryBloc>().add(LoadInventory());
+    _loadRole();
+  }
+
+  void _loadRole() async {
+    final role = await StorageService.getUserRole();
+    setState(() {
+      userRole = role ?? 'karyawan';
+    });
   }
 
   @override
@@ -72,6 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
+              await StorageService.clearAll();
               await prefs.remove('email');
               await prefs.remove('password');
               context.read<TransactionBloc>().add(ClearTransactionData());

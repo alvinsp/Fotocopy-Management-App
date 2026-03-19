@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fotocopy_app/data/models/user_model.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_event.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
+import 'package:fotocopy_app/logic/services/storage_sevice.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -37,6 +38,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             final myUser = UserModel.fromFirestore(userDoc.data()!, user.uid);
             emit(Authenticated(myUser));
           }
+
+          if (userDoc.exists) {
+            final myUser = UserModel.fromFirestore(userDoc.data()!, user.uid);
+
+            await StorageService.saveLoginStatus(true, myUser.role);
+
+            emit(Authenticated(myUser));
+          }
         }
       } catch (e) {
         emit(AuthError("Login Gagal: Email atau Password salah."));
@@ -47,7 +56,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
 
       try {
-        if (event.activationCode != "BEKALAN2026") {
+        if (event.activationCode != "ABHECE2003") {
           emit(AuthError("Kode Aktivasi Salah! Hubungi Owner."));
           return;
         }

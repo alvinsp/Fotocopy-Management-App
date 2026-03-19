@@ -1,21 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fotocopy_app/data/models/user_model.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_event.dart';
+import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
+import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_bloc.dart';
+import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_event.dart';
+import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_state.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_state.dart';
+import 'package:fotocopy_app/logic/services/pdf_service.dart';
+import 'package:fotocopy_app/presentation/widgets/edit_stock_dialog.dart';
+import 'package:fotocopy_app/presentation/widgets/monthly_chart.dart';
 import 'package:fotocopy_app/presentation/widgets/omzet_header.dart';
 import 'package:fotocopy_app/presentation/widgets/order_card.dart';
 import 'package:fotocopy_app/presentation/widgets/row_kategori.dart';
-import 'package:fotocopy_app/presentation/widgets/show_add_order_dialog.dart';
 import 'package:fotocopy_app/presentation/widgets/summary_card.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<TransactionBloc>().add(LoadTransactions());
+    context.read<InventoryBloc>().add(LoadInventory());
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    UserModel? currentUser;
+
+    if (authState is Authenticated) {
+      currentUser = authState.user;
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -43,7 +69,12 @@ class DashboardScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => context.read<AuthBloc>().add(LogoutRequested()),
+            onPressed: () async {
+              context.read<TransactionBloc>().add(ClearTransactionData());
+              context.read<InventoryBloc>().add(ClearInventoryData());
+              await Future.delayed(const Duration(milliseconds: 100));
+              context.read<AuthBloc>().add(LogoutRequested());
+            },
           )
         ],
       ),
@@ -74,10 +105,12 @@ class DashboardScreen extends StatelessWidget {
             int omzetATK = hitungPerKategori('ATK');
 
             return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  OmzetHeader(total: omzet, date: state.selectedDate),
+                  if (currentUser?.role == 'owner')
+                    OmzetHeader(total: omzet, date: state.selectedDate),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16.0, vertical: 8.0),
@@ -103,6 +136,34 @@ class DashboardScreen extends StatelessWidget {
                           rowKategori("Print", omzetPrint, Colors.blue),
                           rowKategori("Jilid", omzetJilid, Colors.green),
                           rowKategori("ATK", omzetATK, Colors.purple),
+                          const SizedBox(height: 16),
+                          if (currentUser?.role == 'owner')
+                            ElevatedButton.icon(
+                              onPressed: () async {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text("Sedang menyiapkan PDF..."),
+                                        duration: Duration(seconds: 1)));
+
+                                try {
+                                  await PdfService.generateReport(
+                                      listSelesai, state.selectedDate, omzet);
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content:
+                                              Text("Gagal cetak PDF: $e")));
+                                }
+                              },
+                              icon: const Icon(Icons.picture_as_pdf),
+                              label: const Text("Cetak Laporan Hari Ini"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.indigo,
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(double.infinity, 45),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -112,7 +173,7 @@ class DashboardScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Statistik Hari Ini",
+                        const Text("Status & Inventori",
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
@@ -128,32 +189,106 @@ class DashboardScreen extends StatelessWidget {
                                 Icons.hourglass_empty, Colors.orange),
                             summaryCard("Selesai", "${listSelesai.length}",
                                 Icons.check_circle_outline, Colors.green),
-                            summaryCard("Kertas A4", "2 Rim", Icons.description,
-                                Colors.blue),
-                            summaryCard("Toner", "85%", Icons.format_color_fill,
-                                Colors.purple),
                           ],
                         ),
+                        const SizedBox(height: 12),
+                        BlocBuilder<InventoryBloc, InventoryState>(
+                          builder: (context, invState) {
+                            if (invState is InventoryLoaded) {
+                              final lowStockItems = invState.items
+                                  .where((item) => item.stok < 3)
+                                  .toList();
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (lowStockItems.isNotEmpty)
+                                    Container(
+                                      width: double.infinity,
+                                      margin: const EdgeInsets.only(bottom: 16),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border:
+                                            Border.all(color: Colors.red[200]!),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                              Icons.warning_amber_rounded,
+                                              color: Colors.red),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              "Peringatan: Stok ${lowStockItems.map((e) => e.namaBarang).join(', ')} hampir habis!",
+                                              style: const TextStyle(
+                                                  color: Colors.red,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  GridView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: 1.6,
+                                    ),
+                                    itemCount: invState.items.length,
+                                    itemBuilder: (context, index) {
+                                      final item = invState.items[index];
+                                      return InkWell(
+                                        onTap: () =>
+                                            editStokDialog(context, item),
+                                        child: summaryCard(
+                                          item.namaBarang,
+                                          "${item.stok} ${item.satuan}",
+                                          Icons.inventory,
+                                          item.stok < 3
+                                              ? Colors.red
+                                              : Colors.blue,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              );
+                            }
+
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          },
+                        ),
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        const Text("Tren Pendapatan (7 Hari)",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 12),
+                        MonthlyChart(orders: state.orders),
                         const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: "Cari nama pelanggan...",
-                              prefixIcon: const Icon(Icons.search),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
+                        TextField(
+                          decoration: InputDecoration(
+                            hintText: "Cari nama pelanggan...",
+                            prefixIcon: const Icon(Icons.search),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                            onChanged: (value) {
-                              context
-                                  .read<TransactionBloc>()
-                                  .add(SearchNameRequested(value));
-                            },
+                                borderSide: BorderSide.none),
                           ),
+                          onChanged: (value) => context
+                              .read<TransactionBloc>()
+                              .add(SearchNameRequested(value)),
                         ),
                         const SizedBox(height: 24),
                         const Text("Antrean Print Terbaru",
@@ -180,13 +315,6 @@ class DashboardScreen extends StatelessWidget {
           return const Center(
               child: Text("Gagal memuat data atau data kosong"));
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showAddOrderDialog(context),
-        label: const Text("Antrean Baru"),
-        icon: const Icon(Icons.add),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
       ),
     );
   }

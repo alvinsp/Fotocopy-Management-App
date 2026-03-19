@@ -8,91 +8,70 @@ import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_state.dart'
 
 class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   final OrderRepository _repository;
-  StreamSubscription? _subscription;
   StreamSubscription? _orderSubscription;
-  final DateTime _currentDate = DateTime.now();
-  String _currentSearch = '';
+
   List<OrderModel> _allOrders = [];
+  String _currentSearch = '';
+  DateTime _currentDate = DateTime.now();
 
   TransactionBloc(this._repository) : super(TransactionInitial()) {
-    on<WatchOrders>((event, emit) {
+    on<LoadTransactions>((event, emit) async {
       emit(TransactionLoading());
-      _subscription?.cancel();
-      _subscription = _repository.getOrders().listen((data) {
-        add(OrdersUpdated(data));
-      });
+      await _orderSubscription?.cancel();
+
+      _orderSubscription = _repository.getOrders().listen(
+            (orders) => add(UpdateTransactionList(orders)),
+            onError: (e) => emit(TransactionError(e.toString())),
+          );
     });
 
-    on<UpdateStatus>((event, emit) async {
-      try {
-        await _repository.updateStatus(event.orderId, event.newStatus);
-      } catch (e) {
-        emit(TransactionError("Failed to update"));
-      }
+    on<UpdateTransactionList>((event, emit) {
+      _allOrders = event.orders;
+      _applyFilter(emit);
     });
 
-    on<AddOrderRequested>((event, emit) async {
-      try {
-        await _repository.addOrder(OrderModel(
-          id: '',
-          namaPelanggan: event.nama,
-          totalHarga: event.harga,
-          status: 'menunggu',
-          kategori: event.kategori,
-          timestamp: DateTime.now(),
-        ));
-      } catch (e) {
-        emit(TransactionError("Failed to add"));
-      }
+    on<SearchNameRequested>((event, emit) {
+      _currentSearch = event.query;
+      _applyFilter(emit);
+    });
+
+    on<ClearTransactionData>((event, emit) async {
+      await _orderSubscription?.cancel();
+      _orderSubscription = null;
+      _allOrders = [];
+      _currentSearch = '';
+      emit(TransactionInitial());
+    });
+
+    on<ChangeDateRequested>((event, emit) {
+      _currentDate = event.selectedDate;
+      _applyFilter(emit);
     });
 
     on<DeleteOrderRequested>((event, emit) async {
       try {
         await _repository.deleteOrder(event.orderId);
       } catch (e) {
-        emit(TransactionError("Failed to delete"));
+        emit(TransactionError("Gagal menghapus pesanan"));
       }
     });
 
-    on<ChangeDateRequested>((event, emit) {
-      emit(TransactionLoading());
-      _orderSubscription?.cancel();
-      _orderSubscription =
-          _repository.watchOrdersByDate(event.selectedDate).listen((data) {
-        add(OrdersUpdated(data));
-      });
-    });
-
-    on<SearchNameRequested>((event, emit) {
-      _currentSearch = event.query;
-
-      final filtered = _allOrders.where((order) {
-        return order.namaPelanggan
-            .toLowerCase()
-            .contains(_currentSearch.toLowerCase());
-      }).toList();
-
-      emit(TransactionLoaded(filtered, _currentDate,
-          searchQuery: _currentSearch));
-    });
-
-    on<OrdersUpdated>((event, emit) {
-      _allOrders = event.orders;
-
-      final filtered = _allOrders.where((order) {
-        return order.namaPelanggan
-            .toLowerCase()
-            .contains(_currentSearch.toLowerCase());
-      }).toList();
-
-      emit(TransactionLoaded(filtered, _currentDate,
-          searchQuery: _currentSearch));
+    on<UpdateStatus>((event, emit) async {
+      try {
+        await _repository.updateStatus(event.orderId, event.newStatus);
+      } catch (e) {
+        emit(TransactionError("Gagal memperbarui status: ${e.toString()}"));
+      }
     });
   }
 
-  @override
-  Future<void> close() {
-    _subscription?.cancel();
-    return super.close();
+  void _applyFilter(Emitter<TransactionState> emit) {
+    final filtered = _allOrders.where((order) {
+      return order.namaPelanggan
+          .toLowerCase()
+          .contains(_currentSearch.toLowerCase());
+    }).toList();
+    emit(
+        TransactionLoaded(filtered, _currentDate, searchQuery: _currentSearch));
   }
 }

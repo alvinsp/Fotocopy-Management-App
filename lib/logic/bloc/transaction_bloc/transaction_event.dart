@@ -2,18 +2,19 @@ import 'package:fotocopy_app/data/models/oder_model.dart';
 
 abstract class TransactionEvent {}
 
-class WatchOrders extends TransactionEvent {}
+class LoadTransactions extends TransactionEvent {} // Pemicu utama
 
-class OrdersUpdated extends TransactionEvent {
+class UpdateTransactionList extends TransactionEvent {
   final List<OrderModel> orders;
-  OrdersUpdated(this.orders);
+  UpdateTransactionList(this.orders);
 }
 
-class UpdateStatus extends TransactionEvent {
-  final String orderId;
-  final String newStatus;
-  UpdateStatus(this.orderId, this.newStatus);
+class SearchNameRequested extends TransactionEvent {
+  final String query;
+  SearchNameRequested(this.query);
 }
+
+class ClearTransactionData extends TransactionEvent {}
 
 class AddOrderRequested extends TransactionEvent {
   final String nama;
@@ -22,17 +23,19 @@ class AddOrderRequested extends TransactionEvent {
   AddOrderRequested(this.nama, this.harga, this.kategori);
 }
 
-class DeleteOrderRequested extends TransactionEvent {
-  final String orderId;
-  DeleteOrderRequested(this.orderId);
-}
-
 class ChangeDateRequested extends TransactionEvent {
   final DateTime selectedDate;
   ChangeDateRequested(this.selectedDate);
 }
 
-class SearchNameRequested extends TransactionEvent {
-  final String query;
-  SearchNameRequested(this.query);
+class DeleteOrderRequested extends TransactionEvent {
+  final String orderId;
+  DeleteOrderRequested(this.orderId);
+}
+
+class UpdateStatus extends TransactionEvent {
+  final String orderId;
+  final String newStatus;
+
+  UpdateStatus(this.orderId, this.newStatus);
 }

@@ -21,11 +21,3 @@ Aplikasi manajemen antrean dan laporan keuangan real-time untuk toko fotocopy ke
 ## 🛡️ Keamanan & Privasi
 
 Proyek ini menggunakan `.env` untuk menyembunyikan API Keys sensitif dan telah menerapkan Firestore Security Rules untuk mencegah akses data tanpa otorisasi.
-
-## 📸 Tampilan Aplikasi
-
-_(Tips: Masukkan screenshot aplikasi kamu di sini nanti)_
-
----
-
-_Developed with ❤️ to modernize a 20-year legacy business._

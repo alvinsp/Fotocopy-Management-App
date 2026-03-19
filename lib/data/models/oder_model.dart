@@ -6,7 +6,7 @@ class OrderModel {
   final int totalHarga;
   final String status;
   final String kategori;
-  final DateTime timestamp;
+  final DateTime createdAt;
 
   OrderModel({
     required this.id,
@@ -14,7 +14,7 @@ class OrderModel {
     required this.totalHarga,
     required this.status,
     required this.kategori,
-    required this.timestamp,
+    required this.createdAt,
   });
 
   factory OrderModel.fromFirestore(
@@ -25,9 +25,7 @@ class OrderModel {
       totalHarga: (json['totalHarga'] ?? 0).toInt(),
       status: json['status'] ?? 'menunggu',
       kategori: json['kategori'] ?? 'Fotocopy',
-      timestamp: json['timestamp'] != null
-          ? (json['timestamp'] as Timestamp).toDate()
-          : DateTime.now(),
+      createdAt: (json['timestamp'] as Timestamp).toDate(),
     );
   }
 }

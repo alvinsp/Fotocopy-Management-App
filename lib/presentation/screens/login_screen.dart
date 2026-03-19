@@ -5,12 +5,19 @@ import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_event.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
 import 'package:fotocopy_app/presentation/screens/dashboad_screen.dart';
+import 'package:fotocopy_app/presentation/screens/register_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
 
-  LoginScreen({super.key});
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +36,7 @@ class LoginScreen extends StatelessWidget {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Icon(Icons.print, size: 80, color: Colors.indigo),
               const SizedBox(height: 24),
@@ -94,9 +102,64 @@ class LoginScreen extends StatelessWidget {
                         );
                 },
               ),
+              const SizedBox(
+                height: 24,
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  );
+                },
+                child: const Text("Belum punya akun? Daftar di sini"),
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: _showForgotPasswordDialog,
+                  child: const Text("Lupa Password?",
+                      style: TextStyle(color: Colors.indigo)),
+                ),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showForgotPasswordDialog() {
+    final emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Lupa Password?"),
+        content: TextField(
+          controller: emailController,
+          decoration: const InputDecoration(
+            labelText: "Masukkan Email Terdaftar",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (emailController.text.isNotEmpty) {
+                context
+                    .read<AuthBloc>()
+                    .add(ForgotPasswordRequested(emailController.text.trim()));
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Kirim Link"),
+          ),
+        ],
       ),
     );
   }

@@ -23,7 +23,7 @@ dependencies:
   pdf: ^3.11.3
   printing: ^5.14.3
   fl_chart: ^0.71.0
-  shared_preferences: ^2.3.0
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:
@@ -36,7 +36,7 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/images/app_icon.png"
-  adaptive_icon_background: "#3F51B5"
+  adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/images/app_icon.png"
 
 flutter:

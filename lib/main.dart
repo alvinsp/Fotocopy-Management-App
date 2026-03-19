@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          return LoginScreen();
+          return const LoginScreen();
         },
       ),
     );

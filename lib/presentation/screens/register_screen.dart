@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_event.dart';
+import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
+import 'package:fotocopy_app/presentation/screens/main_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -13,70 +15,99 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _activationController = TextEditingController();
-  String _selectedRole = 'karyawan'; // Default role
+  final _namaController = TextEditingController();
+  final _codeController = TextEditingController();
+  String _selectedRole = 'karyawan';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Daftar Akun Toko")),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
+      appBar: AppBar(title: const Text("Daftar Akun Baru")),
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is Authenticated) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+              (route) => false,
+            );
+          } else if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.red),
+            );
+          }
+        },
         child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
+              const Icon(Icons.person_add_alt_1,
+                  size: 80, color: Colors.indigo),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _namaController,
+                decoration: const InputDecoration(
+                    labelText: 'Nama Lengkap', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
-                    labelText: 'Email Baru', border: OutlineInputBorder()),
+                    labelText: 'Email', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
+                obscureText: true,
                 decoration: const InputDecoration(
                     labelText: 'Password', border: OutlineInputBorder()),
-                obscureText: true,
               ),
               const SizedBox(height: 16),
-              // Dropdown Pilihan Role
               DropdownButtonFormField<String>(
                 value: _selectedRole,
-                items: ['owner', 'karyawan'].map((role) {
-                  return DropdownMenuItem(
-                      value: role, child: Text(role.toUpperCase()));
-                }).toList(),
-                onChanged: (val) => setState(() => _selectedRole = val!),
-                decoration: const InputDecoration(labelText: 'Role User'),
+                items: ['owner', 'karyawan']
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedRole = v!),
+                decoration: const InputDecoration(
+                    labelText: 'Role', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 16),
-              // Input Kode Aktivasi Rahasia
               TextField(
-                controller: _activationController,
+                controller: _codeController,
                 decoration: const InputDecoration(
-                  labelText: 'Kode Aktivasi Rahasia',
-                  hintText: 'Masukkan kode dari Developer',
+                  labelText: 'Kode Aktivasi Toko',
+                  hintText: 'Tanyakan pada owner',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.vpn_key),
                 ),
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-                  onPressed: () {
-                    // Panggil Event Register (Pastikan sudah dibuat di AuthBloc)
-                    context.read<AuthBloc>().add(RegisterRequested(
-                          _emailController.text,
-                          _passwordController.text,
-                          _selectedRole,
-                          _activationController.text,
-                        ));
-                  },
-                  child: const Text("Daftar Sekarang",
-                      style: TextStyle(color: Colors.white)),
-                ),
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  return state is AuthLoading
+                      ? const CircularProgressIndicator()
+                      : SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.indigo),
+                            onPressed: () {
+                              context.read<AuthBloc>().add(RegisterRequested(
+                                    email: _emailController.text.trim(),
+                                    password: _passwordController.text.trim(),
+                                    nama: _namaController.text,
+                                    role: _selectedRole,
+                                    activationCode: _codeController.text.trim(),
+                                  ));
+                            },
+                            child: const Text("Daftar Sekarang",
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        );
+                },
               ),
             ],
           ),

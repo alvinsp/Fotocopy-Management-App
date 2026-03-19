@@ -17,6 +17,7 @@ import 'package:fotocopy_app/presentation/widgets/omzet_header.dart';
 import 'package:fotocopy_app/presentation/widgets/order_card.dart';
 import 'package:fotocopy_app/presentation/widgets/row_kategori.dart';
 import 'package:fotocopy_app/presentation/widgets/summary_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -70,9 +71,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('email');
+              await prefs.remove('password');
               context.read<TransactionBloc>().add(ClearTransactionData());
               context.read<InventoryBloc>().add(ClearInventoryData());
-              await Future.delayed(const Duration(milliseconds: 100));
               context.read<AuthBloc>().add(LogoutRequested());
             },
           )
@@ -85,16 +88,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
 
           if (state is TransactionLoaded) {
-            final listSelesai =
-                state.orders.where((o) => o.status == 'selesai').toList();
+            final listHariIni = state.orders.where((o) {
+              return o.createdAt.year == state.selectedDate.year &&
+                  o.createdAt.month == state.selectedDate.month &&
+                  o.createdAt.day == state.selectedDate.day;
+            }).toList();
+            final listSelesaiHariIni =
+                listHariIni.where((o) => o.status == 'selesai').toList();
+
             final listAntrean =
                 state.orders.where((o) => o.status == 'menunggu').toList();
 
-            final omzet =
-                listSelesai.fold(0, (sum, item) => sum + item.totalHarga);
+            final omzet = listSelesaiHariIni.fold(
+                0, (sum, item) => sum + item.totalHarga);
 
             int hitungPerKategori(String namaKat) {
-              return listSelesai
+              return listSelesaiHariIni
                   .where((o) => o.kategori == namaKat)
                   .fold(0, (sum, item) => sum + item.totalHarga);
             }
@@ -148,7 +157,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                                 try {
                                   await PdfService.generateReport(
-                                      listSelesai, state.selectedDate, omzet);
+                                      listSelesaiHariIni,
+                                      state.selectedDate,
+                                      omzet);
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -187,8 +198,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             summaryCard("Antrean", "${listAntrean.length}",
                                 Icons.hourglass_empty, Colors.orange),
-                            summaryCard("Selesai", "${listSelesai.length}",
-                                Icons.check_circle_outline, Colors.green),
+                            summaryCard(
+                                "Selesai",
+                                "${listSelesaiHariIni.length}",
+                                Icons.check_circle_outline,
+                                Colors.green),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -298,9 +312,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: state.orders.length,
+                          itemCount: listHariIni.length,
                           itemBuilder: (context, index) {
-                            final order = state.orders[index];
+                            final order = listHariIni[index];
                             return orderCard(context, order);
                           },
                         ),

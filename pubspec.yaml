@@ -23,6 +23,7 @@ dependencies:
   pdf: ^3.11.3
   printing: ^5.14.3
   fl_chart: ^0.71.0
+  shared_preferences: ^2.3.0
 
 dev_dependencies:
   flutter_test:

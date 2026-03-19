@@ -20,9 +20,13 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       await _orderSubscription?.cancel();
 
       _orderSubscription = _repository.getOrders().listen(
-            (orders) => add(UpdateTransactionList(orders)),
-            onError: (e) => emit(TransactionError(e.toString())),
-          );
+        (orders) {
+          if (!isClosed) {
+            add(UpdateTransactionList(orders));
+          }
+        },
+        onError: (e) => emit(TransactionError(e.toString())),
+      );
     });
 
     on<UpdateTransactionList>((event, emit) {
@@ -41,6 +45,21 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       _allOrders = [];
       _currentSearch = '';
       emit(TransactionInitial());
+    });
+
+    on<AddOrderRequested>((event, emit) async {
+      try {
+        await _repository.addOrder(OrderModel(
+          id: '',
+          namaPelanggan: event.nama,
+          totalHarga: event.harga,
+          status: 'menunggu',
+          kategori: event.kategori,
+          createdAt: DateTime.now(),
+        ));
+      } catch (e) {
+        emit(TransactionError("Gagal tambah pesanan: ${e.toString()}"));
+      }
     });
 
     on<ChangeDateRequested>((event, emit) {

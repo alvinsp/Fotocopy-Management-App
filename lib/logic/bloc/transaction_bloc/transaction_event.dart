@@ -2,7 +2,7 @@ import 'package:fotocopy_app/data/models/oder_model.dart';
 
 abstract class TransactionEvent {}
 
-class LoadTransactions extends TransactionEvent {} // Pemicu utama
+class LoadTransactions extends TransactionEvent {}
 
 class UpdateTransactionList extends TransactionEvent {
   final List<OrderModel> orders;

@@ -17,15 +17,14 @@ class OrderModel {
     required this.createdAt,
   });
 
-  factory OrderModel.fromFirestore(
-      Map<String, dynamic> json, String documentId) {
+  factory OrderModel.fromFirestore(Map<String, dynamic> data, String id) {
     return OrderModel(
-      id: documentId,
-      namaPelanggan: json['namaPelanggan'] ?? '',
-      totalHarga: (json['totalHarga'] ?? 0).toInt(),
-      status: json['status'] ?? 'menunggu',
-      kategori: json['kategori'] ?? 'Fotocopy',
-      createdAt: (json['timestamp'] as Timestamp).toDate(),
+      id: id,
+      namaPelanggan: data['namaPelanggan'] ?? '',
+      totalHarga: (data['totalHarga'] ?? 0) as int,
+      status: data['status'] ?? '',
+      kategori: data['kategori'] ?? '',
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 }

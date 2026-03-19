@@ -1,23 +1,22 @@
-# 🖨️ Fotocopy Management System (FMS)
+# fotocopy_app
 
-Aplikasi manajemen antrean dan laporan keuangan real-time untuk toko fotocopy keluarga yang telah beroperasi selama 20 tahun di Bekalan. Dibangun dengan fokus pada kecepatan operasional dan transparansi data keuangan harian.
+A new Flutter project.
 
-## 🚀 Fitur Utama
+## Getting Started
 
-- **Real-time Dashboard:** Pantau antrean yang masuk dan ubah status transaksi (Menunggu -> Selesai) secara instan.
-- **Financial Reporting:** Laporan omzet otomatis yang dikelompokkan berdasarkan kategori (Fotocopy, Print, Jilid, ATK).
-- **Date Filtering:** Pilih tanggal spesifik untuk melihat riwayat transaksi dan pendapatan di masa lalu.
-- **Smart Search:** Pencarian nama pelanggan yang cepat untuk memudahkan operator saat antrean ramai.
-- **Secure Admin Access:** Login sistem untuk memastikan hanya pengelola toko yang bisa memodifikasi data keuangan.
+This project is a starting point for a Flutter application.
 
-## 🛠️ Tech Stack
+A few resources to get you started if this is your first Flutter project:
 
-- **Framework:** Flutter (Material 3)
-- **State Management:** BLoC (Business Logic Component)
-- **Backend:** Firebase Firestore (Real-time DB) & Firebase Auth
-- **Architecture:** Clean Architecture (Data, Logic, Presentation Layers)
-- **Security:** Environment Variables (.env) & Firestore Security Rules
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
+<<<<<<< HEAD
 ## 🛡️ Keamanan & Privasi
 
 Proyek ini menggunakan `.env` untuk menyembunyikan API Keys sensitif dan telah menerapkan Firestore Security Rules untuk mencegah akses data tanpa otorisasi.
+=======
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
+>>>>>>> parent of 48bd0b3 (readme.md)

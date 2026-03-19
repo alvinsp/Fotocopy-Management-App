@@ -25,15 +25,14 @@ class OrderRepository {
       'totalHarga': order.totalHarga,
       'status': 'menunggu',
       'kategori': order.kategori,
-      'timestamp':
-          FieldValue.serverTimestamp(), // Pakai waktu server agar akurat
+      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 
   Stream<List<OrderModel>> getOrders() {
     return _firestore
         .collection('orders')
-        .orderBy('timestamp', descending: true)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs

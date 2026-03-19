@@ -16,11 +16,10 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // Daftar halaman kita
   final List<Widget> _pages = [
-    const DashboardScreen(), // Isi kodingan dashboard kamu yang sekarang
-    const InventoryPage(), // Halaman stok khusus
-    const HistoryPage(), // Halaman arsip transaksi
+    const DashboardScreen(),
+    const InventoryPage(),
+    const HistoryPage(),
   ];
 
   @override
@@ -115,13 +114,26 @@ void _showAddTransactionDialog(BuildContext context) {
             onPressed: () {
               if (namaController.text.isNotEmpty &&
                   hargaController.text.isNotEmpty) {
-                // KIRIM KE TRANSACTION BLOC
-                context.read<TransactionBloc>().add(AddOrderRequested(
-                      namaController.text,
-                      int.parse(hargaController.text),
-                      selectedKategori,
-                    ));
-                Navigator.pop(context);
+                final nama = namaController.text;
+                final harga = int.tryParse(hargaController.text) ?? 0;
+                final kategori = selectedKategori;
+
+                final transactionBloc = context.read<TransactionBloc>();
+
+                Navigator.of(context).pop();
+
+                transactionBloc.add(AddOrderRequested(
+                  nama,
+                  harga,
+                  kategori,
+                ));
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Pesanan sedang diproses..."),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
               }
             },
             child: const Text("Simpan Pesanan",

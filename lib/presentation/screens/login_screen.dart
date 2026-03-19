@@ -18,7 +18,6 @@ class LoginScreen extends StatelessWidget {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
-            // Kalau berhasil login, pindah ke Dashboard
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (_) => const DashboardScreen()));
           } else if (state is AuthError) {
@@ -37,24 +36,61 @@ class LoginScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 32),
               TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email')),
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                ),
+              ),
+              const SizedBox(height: 16),
               TextField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true),
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                ),
+                obscureText: true,
+              ),
               const SizedBox(height: 32),
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
                   return state is AuthLoading
                       ? const CircularProgressIndicator()
-                      : ElevatedButton(
-                          onPressed: () {
-                            context.read<AuthBloc>().add(LoginRequested(
-                                _emailController.text,
-                                _passwordController.text));
-                          },
-                          child: const Text("Masuk"),
+                      : SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              context.read<AuthBloc>().add(LoginRequested(
+                                  _emailController.text,
+                                  _passwordController.text));
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.indigo,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              elevation: 5,
+                              shadowColor: Colors.indigo.withOpacity(0.5),
+                            ),
+                            child: const Text(
+                              "Masuk",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
                         );
                 },
               ),

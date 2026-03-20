@@ -4,7 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_event.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
-import 'package:fotocopy_app/presentation/screens/dashboad_screen.dart';
+import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_bloc.dart';
+import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_event.dart';
+import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_bloc.dart';
+import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart';
+import 'package:fotocopy_app/presentation/screens/main_screen.dart';
 import 'package:fotocopy_app/presentation/screens/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,8 +29,12 @@ class _LoginScreenState extends State<LoginScreen> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (_) => const DashboardScreen()));
+            context.read<TransactionBloc>().add(LoadTransactions());
+            context.read<InventoryBloc>().add(LoadInventory());
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const MainScreen()),
+              (route) => false,
+            );
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(state.message)));

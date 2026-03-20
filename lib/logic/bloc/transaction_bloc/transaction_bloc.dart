@@ -29,6 +29,13 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       );
     });
 
+    on<ClearTransactionData>((event, emit) async {
+      print("Mematikan Stream Firestore...");
+      await _orderSubscription?.cancel();
+      _orderSubscription = null;
+      emit(TransactionInitial());
+    });
+
     on<UpdateTransactionList>((event, emit) {
       _allOrders = event.orders;
       _applyFilter(emit);
@@ -37,14 +44,6 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     on<SearchNameRequested>((event, emit) {
       _currentSearch = event.query;
       _applyFilter(emit);
-    });
-
-    on<ClearTransactionData>((event, emit) async {
-      await _orderSubscription?.cancel();
-      _orderSubscription = null;
-      _allOrders = [];
-      _currentSearch = '';
-      emit(TransactionInitial());
     });
 
     on<AddOrderRequested>((event, emit) async {
@@ -92,5 +91,11 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     }).toList();
     emit(
         TransactionLoaded(filtered, _currentDate, searchQuery: _currentSearch));
+  }
+
+  @override
+  Future<void> close() {
+    _orderSubscription?.cancel();
+    return super.close();
   }
 }

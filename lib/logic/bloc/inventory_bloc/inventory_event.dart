@@ -16,3 +16,8 @@ class UpdateStokRequested extends InventoryEvent {
   final int jumlahBaru;
   UpdateStokRequested(this.id, this.jumlahBaru);
 }
+
+class DeleteInventoryItem extends InventoryEvent {
+  final String id;
+  DeleteInventoryItem(this.id);
+}

@@ -2,11 +2,33 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_bloc.dart';
+import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_event.dart';
 import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_state.dart';
+import 'package:fotocopy_app/logic/services/storage_sevice.dart';
 import 'package:fotocopy_app/presentation/widgets/edit_stock_dialog.dart';
 
-class InventoryPage extends StatelessWidget {
+class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
+
+  @override
+  State<InventoryPage> createState() => _InventoryPageState();
+}
+
+class _InventoryPageState extends State<InventoryPage> {
+  String userRole = 'karyawan';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  void _loadRole() async {
+    final role = await StorageService.getUserRole();
+    setState(() {
+      userRole = role ?? 'karyawan';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,18 +44,63 @@ class InventoryPage extends StatelessWidget {
                 final item = state.items[index];
                 bool isLow = item.stok < 3;
 
-                return Card(
-                  color: isLow ? Colors.red[50] : Colors.white,
-                  child: ListTile(
-                    leading: Icon(Icons.inventory_2,
-                        color: isLow ? Colors.red : Colors.indigo),
-                    title: Text(item.namaBarang,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text("Sisa: ${item.stok} ${item.satuan}"),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.grey),
-                      onPressed: () => editStokDialog(
-                          context, item), // Pakai dialog yang sudah kita buat
+                return Dismissible(
+                  key: Key(item.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    color: Colors.red,
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  confirmDismiss: (direction) async {
+                    if (userRole != 'owner') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text("Hanya Owner yang boleh menghapus stok!")),
+                      );
+                      return false; // Batalkan hapus
+                    }
+                    return await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text("Hapus Barang?"),
+                        content:
+                            Text("Yakin ingin menghapus ${item.namaBarang}?"),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text("Batal")),
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text("Hapus",
+                                  style: TextStyle(color: Colors.red))),
+                        ],
+                      ),
+                    );
+                  },
+                  onDismissed: (direction) {
+                    context
+                        .read<InventoryBloc>()
+                        .add(DeleteInventoryItem(item.id));
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("${item.namaBarang} dihapus")),
+                    );
+                  },
+                  child: Card(
+                    color: isLow ? Colors.red[50] : Colors.white,
+                    child: ListTile(
+                      leading: Icon(Icons.inventory_2,
+                          color: isLow ? Colors.red : Colors.indigo),
+                      title: Text(item.namaBarang,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text("Sisa: ${item.stok} ${item.satuan}"),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.grey),
+                        onPressed: () => editStokDialog(context, item),
+                      ),
                     ),
                   ),
                 );

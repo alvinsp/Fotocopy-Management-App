@@ -6,6 +6,7 @@ import 'package:fotocopy_app/data/repositories/inventory_repository.dart';
 import 'package:fotocopy_app/data/repositories/oder_repository.dart';
 import 'package:fotocopy_app/firebase_options.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
+import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
 import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_event.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_bloc.dart';
@@ -61,9 +62,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Fotocopy Bekalan',
+      title: 'Fotocopy Abhece',
       theme: ThemeData(primarySwatch: Colors.indigo),
-      home: isLoggedIn ? const MainScreen() : const LoginScreen(),
+      home: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if (state is Authenticated) {
+            return const MainScreen();
+          } else if (state is Unauthenticated) {
+            return const LoginScreen();
+          }
+
+          // Kondisi awal saat baru buka aplikasi
+          return isLoggedIn ? const MainScreen() : const LoginScreen();
+        },
+      ),
     );
   }
 }

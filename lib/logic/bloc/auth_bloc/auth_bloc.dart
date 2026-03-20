@@ -33,17 +33,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               .collection('users')
               .doc(user.uid)
               .get();
-
-          if (userDoc.exists) {
-            final myUser = UserModel.fromFirestore(userDoc.data()!, user.uid);
-            emit(Authenticated(myUser));
-          }
-
           if (userDoc.exists) {
             final myUser = UserModel.fromFirestore(userDoc.data()!, user.uid);
 
             await StorageService.saveLoginStatus(true, myUser.role);
-
             emit(Authenticated(myUser));
           }
         }
@@ -103,7 +96,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<LogoutRequested>((event, emit) async {
-      emit(AuthLoading());
       try {
         await _auth.signOut();
         emit(Unauthenticated());

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
+import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart';
 import 'package:fotocopy_app/presentation/screens/dashboad_screen.dart';
 import 'package:fotocopy_app/presentation/screens/history_page.dart';
 import 'package:fotocopy_app/presentation/screens/inventory_page.dart';
+import 'package:fotocopy_app/presentation/screens/login_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -24,40 +27,51 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'Beranda',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: 'Stok',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: 'Riwayat',
-          ),
-        ],
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is Unauthenticated) {
+          // PAKSA PINDAH KE LOGIN
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        body: _pages[_selectedIndex],
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (int index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined),
+              selectedIcon: Icon(Icons.dashboard),
+              label: 'Beranda',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.inventory_2_outlined),
+              selectedIcon: Icon(Icons.inventory_2),
+              label: 'Stok',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.history_outlined),
+              selectedIcon: Icon(Icons.history),
+              label: 'Riwayat',
+            ),
+          ],
+        ),
+        floatingActionButton: _selectedIndex == 0
+            ? FloatingActionButton(
+                onPressed: () => _showAddTransactionDialog(context),
+                backgroundColor: Colors.indigo,
+                child: const Icon(Icons.add, color: Colors.white),
+              )
+            : null,
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              onPressed: () => _showAddTransactionDialog(context),
-              backgroundColor: Colors.indigo,
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null,
     );
   }
 }

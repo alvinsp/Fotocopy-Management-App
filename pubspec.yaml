@@ -24,6 +24,7 @@ dependencies:
   printing: ^5.14.3
   fl_chart: ^0.71.0
   shared_preferences: ^2.3.3
+  flutter_native_splash: ^2.4.1
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +38,14 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/app_icon.png"
   adaptive_icon_foreground: "assets/images/app_icon.png"
+
+flutter_native_splash:
+  color: "#FFEB3B"
+  image: assets/images/app_icon.png
+  android_12:
+    image: assets/images/app_icon.png
+    color: "#FFEB3B"
+  fullscreen: true
 
 flutter:
   uses-material-design: true

@@ -41,8 +41,6 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
             .update({
           'stok': event.jumlahBaru,
         });
-        // Tidak perlu emit state baru karena stream watchInventory()
-        // akan otomatis mendeteksi perubahan dan mengupdate UI.
       } catch (e) {
         print("Gagal update stok: $e");
       }

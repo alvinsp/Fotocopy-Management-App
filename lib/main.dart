@@ -76,7 +76,6 @@ class MyApp extends StatelessWidget {
             return const LoginScreen();
           }
 
-          // Kondisi awal saat baru buka aplikasi
           return isLoggedIn ? const MainScreen() : const LoginScreen();
         },
       ),

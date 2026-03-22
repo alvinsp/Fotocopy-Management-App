@@ -14,7 +14,6 @@ class HistoryPage extends StatelessWidget {
       body: BlocBuilder<TransactionBloc, TransactionState>(
         builder: (context, state) {
           if (state is TransactionLoaded) {
-            // Filter hanya yang sudah selesai
             final finishedOrders =
                 state.orders.where((o) => o.status == 'selesai').toList();
 
@@ -23,8 +22,7 @@ class HistoryPage extends StatelessWidget {
               itemCount: finishedOrders.length,
               itemBuilder: (context, index) {
                 final order = finishedOrders[index];
-                return orderCard(
-                    context, order); // Gunakan widget card yang sudah kita buat
+                return orderCard(context, order);
               },
             );
           }

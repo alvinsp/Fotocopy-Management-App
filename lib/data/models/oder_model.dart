@@ -5,6 +5,7 @@ class OrderModel {
   final String namaPelanggan;
   final int totalHarga;
   final String status;
+  final bool isLunas;
   final String kategori;
   final DateTime createdAt;
 
@@ -13,6 +14,7 @@ class OrderModel {
     required this.namaPelanggan,
     required this.totalHarga,
     required this.status,
+    required this.isLunas,
     required this.kategori,
     required this.createdAt,
   });
@@ -23,6 +25,7 @@ class OrderModel {
       namaPelanggan: data['namaPelanggan'] ?? '',
       totalHarga: (data['totalHarga'] ?? 0) as int,
       status: data['status'] ?? '',
+      isLunas: data['isLunas'] ?? true,
       kategori: data['kategori'] ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );

@@ -23,8 +23,9 @@ class OrderRepository {
     await _orderCollection.add({
       'namaPelanggan': order.namaPelanggan,
       'totalHarga': order.totalHarga,
-      'status': 'menunggu',
+      'status': order.status,
       'kategori': order.kategori,
+      'isLunas': order.isLunas,
       'createdAt': FieldValue.serverTimestamp(),
     });
   }

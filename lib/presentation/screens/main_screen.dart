@@ -30,7 +30,6 @@ class _MainScreenState extends State<MainScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Unauthenticated) {
-          // PAKSA PINDAH KE LOGIN
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const LoginScreen()),
             (route) => false,
@@ -79,83 +78,124 @@ class _MainScreenState extends State<MainScreen> {
 void _showAddTransactionDialog(BuildContext context) {
   final namaController = TextEditingController();
   final hargaController = TextEditingController();
-  String selectedKategori = 'Fotocopy'; // Default
+  String selectedKategori = 'Fotocopy';
+  bool isLunas = true;
 
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 20,
-          right: 20,
-          top: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text("Input Pesanan Baru",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          TextField(
-              controller: namaController,
-              decoration: const InputDecoration(
-                  labelText: "Nama Pelanggan", border: OutlineInputBorder())),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            value: selectedKategori,
-            items: ['Fotocopy', 'Print', 'Jilid', 'ATK']
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                .toList(),
-            onChanged: (v) => selectedKategori = v!,
-            decoration: const InputDecoration(
-                labelText: "Kategori", border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-              controller: hargaController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                  labelText: "Total Harga",
-                  prefixText: "Rp ",
-                  border: OutlineInputBorder())),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo,
-                minimumSize: const Size(double.infinity, 50)),
-            onPressed: () {
-              if (namaController.text.isNotEmpty &&
-                  hargaController.text.isNotEmpty) {
-                final nama = namaController.text;
-                final harga = int.tryParse(hargaController.text) ?? 0;
-                final kategori = selectedKategori;
-
-                final transactionBloc = context.read<TransactionBloc>();
-
-                Navigator.of(context).pop();
-
-                transactionBloc.add(AddOrderRequested(
-                  nama,
-                  harga,
-                  kategori,
-                ));
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Pesanan sedang diproses..."),
-                    duration: Duration(seconds: 1),
+    builder: (context) => StatefulBuilder(
+      builder: (context, setModalState) {
+        return Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 20,
+              right: 20,
+              top: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Input Pesanan Baru",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              TextField(
+                  controller: namaController,
+                  decoration: const InputDecoration(
+                      labelText: "Nama Pelanggan",
+                      border: OutlineInputBorder())),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: selectedKategori,
+                items: ['Fotocopy', 'Print', 'Jilid', 'ATK']
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                    .toList(),
+                onChanged: (v) {
+                  setModalState(() => selectedKategori = v!);
+                },
+                decoration: const InputDecoration(
+                    labelText: "Kategori", border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                  controller: hargaController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                      labelText: "Total Harga",
+                      prefixText: "Rp ",
+                      border: OutlineInputBorder())),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: isLunas ? Colors.green[50] : Colors.orange[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                      Border.all(color: isLunas ? Colors.green : Colors.orange),
+                ),
+                child: SwitchListTile(
+                  title: Text(
+                    isLunas ? "PEMBAYARAN LUNAS" : "BON (HUTANG)",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isLunas ? Colors.green[700] : Colors.orange[800],
+                    ),
                   ),
-                );
-              }
-            },
-            child: const Text("Simpan Pesanan",
-                style: TextStyle(color: Colors.white)),
+                  secondary: Icon(
+                    isLunas ? Icons.check_circle : Icons.warning_amber_rounded,
+                    color: isLunas ? Colors.green : Colors.orange,
+                  ),
+                  value: isLunas,
+                  activeColor: Colors.green,
+                  onChanged: (bool value) {
+                    // 3. Sekarang setModalState akan bekerja dengan benar
+                    setModalState(() {
+                      isLunas = value;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    minimumSize: const Size(double.infinity, 50)),
+                onPressed: () {
+                  if (namaController.text.isNotEmpty &&
+                      hargaController.text.isNotEmpty) {
+                    final nama = namaController.text;
+                    final harga = int.tryParse(hargaController.text) ?? 0;
+                    final kategori = selectedKategori;
+
+                    context.read<TransactionBloc>().add(AddOrderRequested(
+                          nama,
+                          harga,
+                          kategori,
+                          isLunas, // Data terkirim sesuai switch!
+                        ));
+
+                    Navigator.of(context).pop();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor:
+                            isLunas ? Colors.green : Colors.orange[800],
+                        content: Text(isLunas
+                            ? "Pesanan Lunas dicatat!"
+                            : "Pesanan BON dicatat!"),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  }
+                },
+                child: const Text("Simpan Pesanan",
+                    style: TextStyle(color: Colors.white)),
+              ),
+              const SizedBox(height: 20),
+            ],
           ),
-          const SizedBox(height: 20),
-        ],
-      ),
+        );
+      },
     ),
   );
 }

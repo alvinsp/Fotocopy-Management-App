@@ -20,7 +20,8 @@ class AddOrderRequested extends TransactionEvent {
   final String nama;
   final int harga;
   final String kategori;
-  AddOrderRequested(this.nama, this.harga, this.kategori);
+  final bool isLunas;
+  AddOrderRequested(this.nama, this.harga, this.kategori, this.isLunas);
 }
 
 class ChangeDateRequested extends TransactionEvent {
@@ -38,4 +39,11 @@ class UpdateStatus extends TransactionEvent {
   final String newStatus;
 
   UpdateStatus(this.orderId, this.newStatus);
+}
+
+class LoadDebtRequested extends TransactionEvent {}
+
+class MarkAsPaidRequested extends TransactionEvent {
+  final String transactionId;
+  MarkAsPaidRequested(this.transactionId);
 }

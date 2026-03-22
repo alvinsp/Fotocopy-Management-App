@@ -60,7 +60,7 @@ class _InventoryPageState extends State<InventoryPage> {
                             content:
                                 Text("Hanya Owner yang boleh menghapus stok!")),
                       );
-                      return false; // Batalkan hapus
+                      return false;
                     }
                     return await showDialog(
                       context: context,
@@ -110,7 +110,6 @@ class _InventoryPageState extends State<InventoryPage> {
           return const Center(child: CircularProgressIndicator());
         },
       ),
-      // Tombol tambah barang baru ke Firebase (Opsional)
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddInventoryDialog(context),
         child: const Icon(Icons.add),
@@ -122,8 +121,7 @@ class _InventoryPageState extends State<InventoryPage> {
 void _showAddInventoryDialog(BuildContext context) {
   final namaController = TextEditingController();
   final stokController = TextEditingController();
-  final satuanController =
-      TextEditingController(text: "Rim"); // Default paling umum
+  final satuanController = TextEditingController(text: "Rim");
 
   showModalBottomSheet(
     context: context,

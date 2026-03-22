@@ -17,3 +17,8 @@ class TransactionError extends TransactionState {
   final String message;
   TransactionError(this.message);
 }
+
+class TransactionDebtLoaded extends TransactionState {
+  final List<OrderModel> debtOrders;
+  TransactionDebtLoaded(this.debtOrders);
+}

@@ -12,6 +12,7 @@ import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart'
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_state.dart';
 import 'package:fotocopy_app/logic/services/pdf_service.dart';
 import 'package:fotocopy_app/logic/services/storage_sevice.dart';
+import 'package:fotocopy_app/presentation/screens/debt_screen.dart';
 import 'package:fotocopy_app/presentation/screens/login_screen.dart';
 import 'package:fotocopy_app/presentation/widgets/edit_stock_dialog.dart';
 import 'package:fotocopy_app/presentation/widgets/monthly_chart.dart';
@@ -217,6 +218,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisSpacing: 12,
                             childAspectRatio: 1.6,
                             children: [
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const DebtListScreen()),
+                                  );
+                                },
+                                child: summaryCard(
+                                    "Piutang (BON)",
+                                    "${listHariIni.where((o) => !o.isLunas).length} Orang", // Hitung yang belum lunas
+                                    Icons.money_off,
+                                    Colors.red[700]!),
+                              ),
                               summaryCard("Antrean", "${listAntrean.length}",
                                   Icons.hourglass_empty, Colors.orange),
                               summaryCard(

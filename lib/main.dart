@@ -12,7 +12,7 @@ import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_event.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart';
-import 'package:fotocopy_app/logic/services/storage_sevice.dart'; // <--- Cek typo nama file ini ya
+import 'package:fotocopy_app/logic/services/storage_sevice.dart';
 import 'package:fotocopy_app/presentation/screens/login_screen.dart';
 import 'package:fotocopy_app/presentation/screens/main_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';

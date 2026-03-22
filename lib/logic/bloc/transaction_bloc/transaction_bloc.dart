@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fotocopy_app/data/models/oder_model.dart';
 import 'package:fotocopy_app/data/repositories/oder_repository.dart';
@@ -54,6 +55,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
           totalHarga: event.harga,
           status: 'menunggu',
           kategori: event.kategori,
+          isLunas: event.isLunas,
           createdAt: DateTime.now(),
         ));
       } catch (e) {
@@ -79,6 +81,27 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
         await _repository.updateStatus(event.orderId, event.newStatus);
       } catch (e) {
         emit(TransactionError("Gagal memperbarui status: ${e.toString()}"));
+      }
+    });
+
+    on<LoadDebtRequested>((event, emit) {
+      if (state is TransactionLoaded) {
+        final currentState = state as TransactionLoaded;
+        final debtList =
+            currentState.orders.where((o) => o.isLunas == false).toList();
+        emit(TransactionDebtLoaded(debtList));
+      }
+    });
+
+    on<MarkAsPaidRequested>((event, emit) async {
+      try {
+        await FirebaseFirestore.instance
+            .collection('orders')
+            .doc(event.transactionId)
+            .update({'isLunas': true});
+        add(LoadTransactions());
+      } catch (e) {
+        print("Gagal update lunas: $e");
       }
     });
   }

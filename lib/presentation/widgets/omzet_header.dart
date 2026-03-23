@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fotocopy_app/core/string_extension.dart';
 import 'package:intl/intl.dart';
 
 class OmzetHeader extends StatelessWidget {
@@ -29,7 +30,7 @@ class OmzetHeader extends StatelessWidget {
           const SizedBox(height: 8),
           const Text("Total Omzet Selesai",
               style: TextStyle(color: Colors.white70, fontSize: 12)),
-          Text("Rp $total",
+          Text(total.toIDR(),
               style: const TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,

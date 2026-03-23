@@ -49,15 +49,18 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
     on<AddOrderRequested>((event, emit) async {
       try {
-        await _repository.addOrder(OrderModel(
-          id: '',
-          namaPelanggan: event.nama,
-          totalHarga: event.harga,
-          status: 'menunggu',
-          kategori: event.kategori,
-          isLunas: event.isLunas,
-          createdAt: DateTime.now(),
-        ));
+        await _repository.addOrder(
+          OrderModel(
+            id: '',
+            namaPelanggan: event.nama,
+            totalHarga: event.harga,
+            status: 'menunggu',
+            kategori: event.kategori,
+            isLunas: event.isLunas,
+            createdAt: DateTime.now(),
+          ),
+        );
+        add(LoadTransactions());
       } catch (e) {
         emit(TransactionError("Gagal tambah pesanan: ${e.toString()}"));
       }

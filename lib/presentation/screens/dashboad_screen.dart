@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:fotocopy_app/core/string_extension.dart';
 import 'package:fotocopy_app/data/models/user_model.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_event.dart';
@@ -10,6 +12,7 @@ import 'package:fotocopy_app/logic/bloc/inventory_bloc/inventory_state.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_event.dart';
 import 'package:fotocopy_app/logic/bloc/transaction_bloc/transaction_state.dart';
+import 'package:fotocopy_app/logic/services/pdf_service.dart';
 import 'package:fotocopy_app/logic/services/storage_sevice.dart';
 import 'package:fotocopy_app/presentation/screens/debt_screen.dart';
 import 'package:fotocopy_app/presentation/screens/login_screen.dart';
@@ -19,6 +22,7 @@ import 'package:fotocopy_app/presentation/widgets/omzet_header.dart';
 import 'package:fotocopy_app/presentation/widgets/order_card.dart';
 import 'package:fotocopy_app/presentation/widgets/row_kategori.dart';
 import 'package:fotocopy_app/presentation/widgets/summary_card.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -29,6 +33,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   String userRole = 'karyawan';
+  final String? nomorOwner = dotenv.env['NOMOR_WA'];
 
   @override
   void initState() {
@@ -108,6 +113,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
 
             if (state is TransactionLoaded) {
+              final totalPiutang = state.orders
+                  .where((o) => !o.isLunas)
+                  .fold(0, (sum, item) => sum + item.totalHarga);
+              final jumlahOrang = state.orders.where((o) => !o.isLunas).length;
               final listHariIni = state.orders.where((o) {
                 return o.createdAt.year == state.selectedDate.year &&
                     o.createdAt.month == state.selectedDate.month &&
@@ -140,57 +149,142 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     if (currentUser?.role == 'owner')
                       OmzetHeader(total: omzet, date: state.selectedDate),
-
-                    // --- BAGIAN 1: RINCIAN PENDAPATAN ---
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16.0, vertical: 8.0),
                       child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10)
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("Rincian Pendapatan",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 14)),
-                            const Divider(height: 20),
-                            rowKategori(
-                                "Fotocopy", omzetFotocopy, Colors.orange),
-                            rowKategori("Print", omzetPrint, Colors.blue),
-                            rowKategori("Jilid", omzetJilid, Colors.green),
-                            rowKategori("ATK", omzetATK, Colors.purple),
-                            if (currentUser?.role == 'owner') ...[
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: () async {
-                                  /* logic cetak PDF kamu */
-                                },
-                                icon: const Icon(Icons.picture_as_pdf),
-                                label: const Text("Cetak Laporan Hari Ini"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.indigo,
-                                  foregroundColor: Colors.white,
-                                  minimumSize: const Size(double.infinity, 45),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10)
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("Rincian Pendapatan",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14)),
+                              const Divider(height: 20),
+                              rowKategori("Fotocopy", omzetFotocopy.toIDR(),
+                                  Colors.orange),
+                              rowKategori(
+                                  "Print", omzetPrint.toIDR(), Colors.blue),
+                              rowKategori(
+                                  "Jilid", omzetJilid.toIDR(), Colors.green),
+                              rowKategori(
+                                  "ATK", omzetATK.toIDR(), Colors.purple),
+                              if (currentUser?.role == 'owner') ...[
+                                const SizedBox(height: 16),
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text("Duit Masuk (Cash):"),
+                                    Text(omzet.toIDR(),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green)),
+                                  ],
                                 ),
-                              ),
-                            ]
-                          ],
-                        ),
-                      ),
-                    ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text("Piutang (Belum Bayar):"),
+                                    Text(
+                                      listHariIni
+                                          .where((o) => !o.isLunas)
+                                          .fold(
+                                              0,
+                                              (sum, item) =>
+                                                  sum + item.totalHarga)
+                                          .toIDR(),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                ElevatedButton.icon(
+                                  onPressed: () async {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Sedang menyiapkan PDF..."),
+                                            duration: Duration(seconds: 1)));
+                                    try {
+                                      await PdfService.generateReport(
+                                          listSelesaiHariIni,
+                                          state.selectedDate,
+                                          omzet);
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              content:
+                                                  Text("Gagal cetak PDF: $e")));
+                                    }
+                                  },
+                                  icon: const Icon(Icons.picture_as_pdf),
+                                  label: const Text("Cetak Laporan PDF"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.indigo,
+                                    foregroundColor: Colors.white,
+                                    minimumSize:
+                                        const Size(double.infinity, 45),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                OutlinedButton.icon(
+                                  onPressed: () async {
+                                    final String tanggal =
+                                        "${state.selectedDate.day}-${state.selectedDate.month}-${state.selectedDate.year}";
+                                    final String pesan =
+                                        "*LAPORAN HARIAN ABHECE FOTOCOPY*\n"
+                                        "Tanggal: $tanggal\n"
+                                        "--------------------------------\n"
+                                        "✅ Omzet Lunas: ${omzet.toIDR()}\n"
+                                        "⚠️ Piutang (Bon): ${listHariIni.where((o) => !o.isLunas).fold(0, (sum, item) => sum + item.totalHarga).toIDR()}\n"
+                                        "--------------------------------\n"
+                                        "Total Transaksi: ${listHariIni.length}\n"
+                                        "Tetap semangat, Bos! 🚀";
 
-                    // --- BAGIAN 2: STATUS TRANSAKSI (2 Kolom Tetap) ---
+                                    final url =
+                                        "https://wa.me/$nomorOwner?text=${Uri.encodeComponent(pesan)}";
+
+                                    if (await canLaunchUrl(Uri.parse(url))) {
+                                      await launchUrl(Uri.parse(url));
+                                    }
+                                  },
+                                  icon: const Icon(Icons.send_rounded),
+                                  label:
+                                      const Text("Kirim Laporan ke WhatsApp"),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.green[800],
+                                    side: BorderSide(color: Colors.green[800]!),
+                                    minimumSize:
+                                        const Size(double.infinity, 45),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                ),
+                              ]
+                            ],
+                          )),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -206,8 +300,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             crossAxisCount: 2,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
-                            childAspectRatio:
-                                1.8, // Disesuaikan agar lebih landai
+                            childAspectRatio: 1.8,
                             children: [
                               InkWell(
                                 onTap: () => Navigator.push(
@@ -216,10 +309,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         builder: (context) =>
                                             const DebtListScreen())),
                                 child: summaryCard(
-                                    "Piutang (BON)",
-                                    "${listHariIni.where((o) => !o.isLunas).length} Orang",
-                                    Icons.money_off,
-                                    Colors.red[700]!),
+                                  "Total BON",
+                                  totalPiutang.toIDR(),
+                                  Icons.money_off,
+                                  Colors.red[700]!,
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const DebtListScreen())),
+                                child: summaryCard(
+                                    "Belum Bayar",
+                                    "$jumlahOrang Orang",
+                                    Icons.people_outline,
+                                    Colors.orange[900]!),
                               ),
                               summaryCard("Antrean", "${listAntrean.length}",
                                   Icons.hourglass_empty, Colors.orange),
@@ -230,10 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   Colors.green),
                             ],
                           ),
-
                           const SizedBox(height: 24),
-
-                          // --- BAGIAN 3: INVENTORI (Dikelompokkan Terpisah) ---
                           const Text("Stok Inventori",
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold)),
@@ -284,8 +387,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   child: CircularProgressIndicator());
                             },
                           ),
-
-                          // --- BAGIAN 4: CHART & LIST (Sama seperti sebelumnya) ---
                           const SizedBox(height: 24),
                           const Text("Tren Pendapatan (7 Hari)",
                               style: TextStyle(

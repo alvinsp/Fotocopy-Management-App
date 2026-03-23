@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fotocopy_app/core/string_extension.dart';
 import 'package:fotocopy_app/data/models/oder_model.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
@@ -78,7 +79,7 @@ Widget orderCard(BuildContext context, OrderModel order) {
         ),
         title: Text(order.namaPelanggan,
             style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text("Rp ${order.totalHarga}"),
+        subtitle: Text(order.totalHarga.toIDR()),
         trailing: isSelesai
             ? const Icon(Icons.done_all, color: Colors.blue)
             : ElevatedButton(

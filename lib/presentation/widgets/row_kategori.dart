@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget rowKategori(String label, int total, Color color) {
+Widget rowKategori(String label, String total, Color color) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
@@ -18,7 +18,7 @@ Widget rowKategori(String label, int total, Color color) {
           ],
         ),
         Text(
-          "Rp $total",
+          total,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
       ],

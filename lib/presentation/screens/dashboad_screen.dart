@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fotocopy_app/core/string_extension.dart';
-import 'package:fotocopy_app/data/models/user_model.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_bloc.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_event.dart';
 import 'package:fotocopy_app/logic/bloc/auth_bloc/auth_state.dart';
@@ -22,6 +21,7 @@ import 'package:fotocopy_app/presentation/widgets/omzet_header.dart';
 import 'package:fotocopy_app/presentation/widgets/order_card.dart';
 import 'package:fotocopy_app/presentation/widgets/row_kategori.dart';
 import 'package:fotocopy_app/presentation/widgets/summary_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -42,21 +42,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _loadRole() async {
-    final role = await StorageService.getUserRole();
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      userRole = role ?? 'karyawan';
+      userRole = prefs.getString('user_role') ?? 'karyawan';
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = context.watch<AuthBloc>().state;
-    UserModel? currentUser;
-
-    if (authState is Authenticated) {
-      currentUser = authState.user;
-    }
-
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Unauthenticated) {
@@ -147,7 +140,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (currentUser?.role == 'owner')
+                    if (userRole == 'owner')
                       OmzetHeader(total: omzet, date: state.selectedDate),
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -179,7 +172,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   "Jilid", omzetJilid.toIDR(), Colors.green),
                               rowKategori(
                                   "ATK", omzetATK.toIDR(), Colors.purple),
-                              if (currentUser?.role == 'owner') ...[
+                              if (userRole == 'owner') ...[
                                 const SizedBox(height: 16),
                                 const Divider(),
                                 const SizedBox(height: 8),

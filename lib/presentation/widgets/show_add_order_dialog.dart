@@ -23,62 +23,65 @@ void showAddOrderDialog(BuildContext context) {
       builder: (context, setState) => AlertDialog(
         title: const Text("Tambah Antrean"),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                  controller: nameController,
-                  decoration:
-                      const InputDecoration(labelText: "Nama Pelanggan")),
-              const SizedBox(height: 8),
-              TextField(
-                  controller: priceController,
-                  decoration: const InputDecoration(labelText: "Harga (Rp)"),
-                  keyboardType: TextInputType.number),
-              const SizedBox(
-                height: 16,
-              ),
-              DropdownButtonFormField<String>(
-                value: selectedKategori,
-                decoration:
-                    const InputDecoration(labelText: "Kategori Layanan"),
-                items: listKategori.map((String value) {
-                  return DropdownMenuItem<String>(
-                      value: value, child: Text(value));
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() => selectedKategori = newValue!);
-                },
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: isLunas ? Colors.green[50] : Colors.orange[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: isLunas ? Colors.green : Colors.orange),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                    controller: nameController,
+                    decoration:
+                        const InputDecoration(labelText: "Nama Pelanggan")),
+                const SizedBox(height: 8),
+                TextField(
+                    controller: priceController,
+                    decoration: const InputDecoration(labelText: "Harga (Rp)"),
+                    keyboardType: TextInputType.number),
+                const SizedBox(
+                  height: 16,
                 ),
-                child: SwitchListTile(
-                  title: Text(
-                    isLunas ? "LUNAS (Cash)" : "BON (Hutang)",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isLunas ? Colors.green[700] : Colors.orange[800],
-                    ),
-                  ),
-                  value: isLunas,
-                  activeColor: Colors.green,
-                  onChanged: (bool value) {
-                    setState(() {
-                      isLunas = value;
-                    });
+                DropdownButtonFormField<String>(
+                  value: selectedKategori,
+                  decoration:
+                      const InputDecoration(labelText: "Kategori Layanan"),
+                  items: listKategori.map((String value) {
+                    return DropdownMenuItem<String>(
+                        value: value, child: Text(value));
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() => selectedKategori = newValue!);
                   },
                 ),
-              ),
-            ],
+                const SizedBox(
+                  height: 16,
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: isLunas ? Colors.green[50] : Colors.orange[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: isLunas ? Colors.green : Colors.orange),
+                  ),
+                  child: SwitchListTile(
+                    title: Text(
+                      isLunas ? "LUNAS (Cash)" : "BON (Hutang)",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isLunas ? Colors.green[700] : Colors.orange[800],
+                      ),
+                    ),
+                    value: isLunas,
+                    activeColor: Colors.green,
+                    onChanged: (bool value) {
+                      setState(() {
+                        isLunas = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
